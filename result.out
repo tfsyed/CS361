@@ -1,0 +1,15 @@
+Bad Instruction
+The current state is:
+   LObj has value: 0
+   HObj has value: 0
+   Lyle has recently read: 0
+   Hal has recently read: 0
+
+Lyle writes value 10 to HObj
+The current state is:
+   LObj has value: 0
+   HObj has value: 10
+   Lyle has recently read: 0
+   Hal has recently read: 0
+
+Lyle reads hobj
