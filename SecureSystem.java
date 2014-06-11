@@ -1,5 +1,22 @@
-/* Something Something SecureSystem
+/* 
+	Authors:
+	Name: Tehreem Syed 
+	UTEID: tfs385
 
+	Name: Amanda Liem
+	UTEID: al34232
+
+	Assignment 1: Create a Secure System which executes instructions of the form:
+
+	READ subject_name object_name
+	WRITE subject_name object_name value
+
+	Current implementation contains 2 subjects, Hal and Lyle, and 2 objects,
+	HObj and LObj. Hal and HObj have a HIGH security level, and Lyle and LObj 
+	have a LOW security level. 
+
+	Access to Objects follow the Bell and LaPadula security rules:
+	Simple Security, the *-property, and strong tranquility
 */
 
 import java.util.*;
@@ -12,7 +29,10 @@ public class SecureSystem{
 	static SecureSystem sys;
 
     public static void main (String[] args) throws FileNotFoundException{
-       	File f;
+       	
+		/* If a valid file is given, use its contents as input. Otherwise, 
+		   input will be taken from STDIN */
+		File f;
        	Scanner sc;
  		if (args.length > 0)
  		{
@@ -24,10 +44,10 @@ public class SecureSystem{
  			sc = new Scanner (System.in);
  		}
         
-    	/*Create secure system and name it sys*/
+    	/* Create secure system and name it sys */
     	 sys = new SecureSystem();
 
-    	 /*create high and low security level */
+    	 /* create high and low security level */
     	 SecurityLevel low = SecurityLevel.LOW;
     	 SecurityLevel high = SecurityLevel.HIGH;
 
@@ -41,7 +61,6 @@ public class SecureSystem{
 		sys.getReferenceMonitor().createNewObject("HObj", high);   
 
 		while (sc.hasNextLine()){
-			//System.out.println(sc.nextLine());
 			String line = sc.nextLine();
 			if (!line.equals(""))
 			{
@@ -49,14 +68,10 @@ public class SecureSystem{
 				sys.my_monitor.execute_instruction (currentInstruction);
 				sys.printState();
 			}
-
-			//sys.printState();
 		}
-		//sys.printState(); 
     }
 
     public SecureSystem(){
-    	// Create a SecureSystem Object
     	my_monitor = new ReferenceMonitor();
     }
 
@@ -93,8 +108,6 @@ public class SecureSystem{
     	while (scanner.hasNext()){
     		if (pos > 100)
     			break;
-    		//System.out.println("in the while loop");
-    		//System.out.println("pos is " + pos);
     		switch (pos) {
     			case 0: 
     				// Read the type of instruction
