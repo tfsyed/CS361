@@ -11,7 +11,6 @@ public class SecureSystem{
 	ReferenceMonitor my_monitor;
 	static SecureSystem sys;
 
-
     public static void main (String[] args) throws FileNotFoundException{
        	File f;
        	Scanner sc;
@@ -72,7 +71,7 @@ public class SecureSystem{
 
     public void printState()
     {
-    	System.out.println("The current state is:");
+    	System.out.println("The current state is: ");
     	my_monitor.print_local();
     	System.out.println("");
 
@@ -113,9 +112,15 @@ public class SecureSystem{
     			case 1:
     				// Read the Subject Name
     				subject_name = scanner.next();
+    				if (my_monitor.get_subject(subject_name) == null){
+    					type = instruction_type.BAD;
+    				}
     				break;
     			case 2:
     				object_name = scanner.next();
+    				if (my_monitor.get_object(object_name) == null){
+    					type = instruction_type.BAD;
+    				}
     				break;
     			case 3: 
     				if (scanner.hasNextInt()){
@@ -168,7 +173,7 @@ public class SecureSystem{
 			item subject = get_subject (instruction.subject_name);
 			item object = get_object (instruction.object_name);
 
-			System.out.println(instruction.subject_name + " reads " + instruction.object_name);
+			System.out.println(instruction.subject_name.toLowerCase() + " reads " + instruction.object_name.toLowerCase());
 
 			if (subject == null || object == null)
 			{
@@ -195,7 +200,7 @@ public class SecureSystem{
 				return;
 			}
 
-			System.out.println(instruction.subject_name + " writes value " + instruction.value + " to " + instruction.object_name);
+			System.out.println(instruction.subject_name.toLowerCase() + " writes value " + instruction.value + " to " + instruction.object_name.toLowerCase());
 			if (write_dominates (subject, object)){
 				object.value = instruction.value;
 			}
