@@ -27,19 +27,34 @@ public class SecureSystem implements Runnable {
 	ReferenceMonitor my_monitor;
 	static SecureSystem sys;
 	File my_file;
+    String name;
+    SecurityLevel level;
 
 	public void run(){
 		try {
 			Scanner sc = new Scanner(my_file);
 			while(sc.hasNextLine()){
-				try{
+				
+                synchronized(this){
+                    String line = sc.nextLine();
+
+                    if (!line.equals("")){
+                        synchronized (this){
+                            System.out.println(line);
+                            InstructionObject currentInstruction = CreateInstruction(line);
+                            my_monitor.execute_instruction (currentInstruction);
+                            printState();
+                        }
+                    }
+                }
+                try{
 					Thread.sleep(1);
 				}
 				catch (Exception e)
 				{
 					System.out.println(e);
 				}
-				System.out.println(sc.nextLine());
+
 			}
 		}
 		catch (FileNotFoundException e){
@@ -51,62 +66,44 @@ public class SecureSystem implements Runnable {
        	
 		/* If a valid file is given, use its contents as input. Otherwise, 
 		   input will be taken from STDIN */
-		// File f;
-  //      	Scanner sc;
- 	// 	if (args.length > 0)
- 	// 	{
- 	// 		f = new File (args[0]);
- 	// 		sc = new Scanner (f);
- 	// 	}
- 	// 	else
- 	// 	{
- 	// 		sc = new Scanner (System.in);
- 	// 	}
 
 		File f1;
 		File f2;
 		f1 = new File(args[0]);
 		f2 = new File(args[1]);
-        
-    	/* Create secure system and name it sys */
-    	// sys = new SecureSystem();
 
     	ReferenceMonitor shared_monitor = new ReferenceMonitor();
 
-    	Runnable test1 = new SecureSystem(f1, shared_monitor);
-    	Runnable test2 = new SecureSystem(f2, shared_monitor);
-    	Thread thread1 = new Thread(test1);
-    	Thread thread2 = new Thread(test2);
+        /* create high and low security level */
+        SecurityLevel low = SecurityLevel.LOW;
+        SecurityLevel high = SecurityLevel.HIGH;
+
+    	Runnable sys1 = new SecureSystem(f1, shared_monitor, "Hal", high);
+    	Runnable sys2 = new SecureSystem(f2, shared_monitor, "Lyle", low);
+    	Thread thread1 = new Thread(sys1);
+    	Thread thread2 = new Thread(sys2);   
+
+        /*Create Lobj and HObj*/
+        shared_monitor.createNewObject("LObj", low);
+        shared_monitor.createNewObject("HObj", high);   
+
     	thread1.start();
     	thread2.start();
 
-  //   	 /* create high and low security level */
-  //   	 SecurityLevel low = SecurityLevel.LOW;
-  //   	 SecurityLevel high = SecurityLevel.HIGH;
-
-
   //       /** Create LYLE and HAL **/	
-  //        sys.createSubject("Lyle", low);
-  //        sys.createSubject("Hal", high);
+        shared_monitor.createNewSubject("Lyle", low);
+        shared_monitor.createNewSubject("Hal", high);
 
-		// /*Create Lobj and HObj*/
-		// sys.getReferenceMonitor().createNewObject("LObj", low);
-		// sys.getReferenceMonitor().createNewObject("HObj", high);   
+       // sys.createSubject("Lyle", low);
+       // sys.createSubject("Hal", high);
 
-		// while (sc.hasNextLine()){
-		// 	String line = sc.nextLine();
-		// 	if (!line.equals(""))
-		// 	{
-		// 		InstructionObject currentInstruction = sys.CreateInstruction(line);
-		// 		sys.my_monitor.execute_instruction (currentInstruction);
-		// 		sys.printState();
-		// 	}
-		// }
     }
 
-    public SecureSystem(File f, ReferenceMonitor m){
+    public SecureSystem(File f, ReferenceMonitor m, String name, SecurityLevel level){
     	my_monitor = m;
     	my_file = f;
+        this.name = name;
+        this.level = level;
     }
 
     public ReferenceMonitor getReferenceMonitor(){
@@ -115,7 +112,8 @@ public class SecureSystem implements Runnable {
 
     public void createSubject(String name, SecurityLevel level)
     {
-    	my_monitor.createNewSubject(name,level);
+        my_monitor.createNewSubject(name, level);
+
     }
 
     public void printState()
@@ -129,7 +127,6 @@ public class SecureSystem implements Runnable {
     {
     	instruction_type type = null;
     	String object_name = null;
-    	String subject_name = null;
     	int val = 0;
 
     	boolean bad = false;
@@ -139,8 +136,7 @@ public class SecureSystem implements Runnable {
     	Scanner scanner = new Scanner(line);
 
     	while (scanner.hasNext()){
-    		if (pos > 100)
-    			break;
+
     		switch (pos) {
     			case 0: 
     				// Read the type of instruction
@@ -156,27 +152,21 @@ public class SecureSystem implements Runnable {
     				}
     				break;
     			case 1:
-    				// Read the Subject Name
-    				subject_name = scanner.next();
-    				if (my_monitor.get_subject(subject_name) == null){
-    					type = instruction_type.BAD;
-    				}
-    				break;
-    			case 2:
+    				// Read the Object Name
     				object_name = scanner.next();
-    				if (my_monitor.get_object(object_name) == null){
-    					type = instruction_type.BAD;
-    				}
-    				break;
-    			case 3: 
+                    if (my_monitor.get_object(object_name) == null){
+                        type = instruction_type.BAD;
+                    }
+                    break;
+    			case 2:
     				if (scanner.hasNextInt()){
-    					val = scanner.nextInt();
-    				}
-    				else
-    				{
-    					type = instruction_type.BAD;
-    				}
-    				break;
+                        val = scanner.nextInt();
+                    }
+                    else
+                    {
+                        type = instruction_type.BAD;
+                    }
+                    break;
     			default:
     				scanner.next();
     				break;
@@ -184,26 +174,11 @@ public class SecureSystem implements Runnable {
     		pos++;
     	}
 
-    	if (pos < 3 || (pos < 4 && type == instruction_type.WRITE))
+    	if (pos < 2 || (pos < 3 && type == instruction_type.WRITE))
     		type = instruction_type.BAD;
 
-    	return new InstructionObject(type, subject_name, object_name, val);
+    	return new InstructionObject(type, this.name, object_name, val);
     }
-
-	public class InstructionObject{
-		instruction_type instr; 
-		String subject_name;
-		String object_name;
-		int value; 
-
-		public InstructionObject(instruction_type instr, String sub, String obj, int val)
-		{
-			this.instr = instr;
-			this.subject_name = sub;
-			this.object_name = obj;
-			this.value = val;
-		}
-	}
 }
 
 
