@@ -4,45 +4,79 @@ import java.io.*;
 
 public class CovertChannel{
 	
+	static boolean verbose;
+	static	String filename;
+
 	public static void main(String[] args)
-	{
-		/* If a valid file is given, use its contents as input. */
-		if (args[0] == null)
-			throw new IllegalArgumentException("Please use \"java CovertChannel (v) <inputfilename>\"");
-		
+	{	
 		File f;
+		FileWriter my_f;
 
-		boolean verbose = args[0].equals("v");
-
-		if (verbose)
-		{
-			f = new File (args[1]);
-			System.out.println("I am in verbose mode.");
+		/* Parsing the arguments */
+		try{
+			f = fileParser(args);
 		}
-		else{
-			f = new File (args[0]);
-
+		catch(IllegalArgumentException e){
+			System.out.println("Please use \"java CovertChannel (v) <inputfilename>\"");
+			return;
 		}
-
-		if (f == null)
-			throw new IllegalArgumentException("Please use \"java CovertChannel (v) <inputfilename>\"");
-
-		System.out.println("File name :" + f.toString());
-
+		catch(Exception e){
+			System.out.println(e);
+			System.out.println("a");
+			return;
+		}
+		
+		/* Hook up the scanner to the file */
 		Scanner sc;
 		try{
-		 sc = new Scanner(f);
+		 	sc = new Scanner(f);
 		}
 		catch(FileNotFoundException e)
 		{
 			System.out.println("File not found.");
-			//throw new FileNotFoundException(e);
 			return;
 		}
+
+        /* create high and low security level */
+        SecurityLevel low = SecurityLevel.LOW;
+        SecurityLevel high = SecurityLevel.HIGH;
+
+        /* create a Secure System, which contains a ReferenceMonitor */
+        SecureSystem sys = new SecureSystem();   
+
+        /* creatng a new java FileWriter*/
+        try{
+        	my_f = new FileWriter(filename + ".out"); 
+        }
+        catch(Exception e){
+        	System.out.println("File creation failed");
+        	return;
+        }
+
+        /** Create LYLE and HAL **/	
+        sys.createSubject("Lyle", low);
+        sys.createSubject("Hal", high);
+
+        /* Main Execution loop */
+        try{
+			execute(sc, sys, my_f);
+		}
+		catch(Exception e)
+		{
+			System.out.println("execute failed");
+			System.out.println(e);
+			return;
+		}
+	}
+
+
+	/* Main Execution Function */
+	public static void execute(Scanner sc, SecureSystem sys, FileWriter my_f){
 
 		while(sc.hasNextLine())
 		{
 			String line = sc.nextLine();
+			line = line + "\n";
 
 			byte b[] = line.getBytes();
 
@@ -50,29 +84,53 @@ public class CovertChannel{
 			int my_byte = inputStream.read();
 			while(my_byte != -1)
 			{
-				//System.out.println("val" + my_byte);
+				int[] buff = new int[8];
 				for(int i = 0; i < 8; i++)
 				{
-					//int mask = my_byte & 0x01;
 
-					System.out.println("num" + ((my_byte & 0x00000080)>>7));
+					buff[i] = (my_byte & 0x00000080)>>7;
 					my_byte = (my_byte << 1);
+					
+					if(buff[i] == 0)
+						sys.my_monitor.executeRun((sys.my_monitor.get_subject("Hal")), my_f);
+					sys.my_monitor.executeRun(sys.my_monitor.get_subject("Lyle"), my_f);
 				}
-				//System.out.println("Output in bits" + bitStream);
-				my_byte = inputStream.read();
 
+				
+				my_byte = inputStream.read();
+				//System.out.println(Arrays.toString(buff));
+				//System.out.println(bitsToByte(buff));
+				/* Make a method to convert from byte to char */
 			}
         }
-
-        /* create high and low security level */
-        SecurityLevel low = SecurityLevel.LOW;
-        SecurityLevel high = SecurityLevel.HIGH;
-
-        /* create a Secure System, which contains a ReferenceMonitor */
-        SecureSystem sys = new SecureSystem();    
-
-        /** Create LYLE and HAL **/	
-        sys.createSubject("Lyle", low);
-        sys.createSubject("Hal", high);
 	}
+
+	
+
+	public static File fileParser(String[] args){
+		File f;
+		/* If a valid file is given, use its contents as input. */
+		if (args.length == 0)
+			throw new IllegalArgumentException();
+		
+
+		verbose = args[0].equals("v");
+		if (verbose)
+		{
+			if (args.length < 2)
+				throw new IllegalArgumentException();
+			filename = args[1];
+			f = new File (filename);
+
+			System.out.println("I am in verbose mode.");
+		}
+		else{
+			filename = args[0];
+			f = new File (filename);
+		}
+
+		System.out.println("File name: " + f.toString());
+		return f;
+	}
+
 }

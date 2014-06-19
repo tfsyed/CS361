@@ -7,38 +7,106 @@
 		
 		ObjectManager my_object_manager;
 		ArrayList<item> subjects;
-
+		int[] byteBuffer ;
+		int bitCounter; 
 		//constructor for ReferenceMonitor
 		public ReferenceMonitor()
 		{
 			//initializes the reference monitor
 			my_object_manager = new ObjectManager();
 			subjects = new ArrayList<item>();
-		}
- 			
-
-		public void executeRead ()
-		{
-			
+			byteBuffer = new int[8];
+			bitCounter = 0;
 		}
 
-		public void executeWrite ()
+		public void executeRead (item Subject, String objectName)
 		{
-			
-		}
-
-		public void executeCreate ()
-		{
-
-		}
-
-		public void executeDestory ()
-		{
+			//System.out.println("in read");
+			/* Read value of Object into Subject */
+			item my_object = get_object(objectName);
+			if(read_dominates(Subject, my_object))
+			{
+				Subject.value = my_object.value;
+			}
+			else
+			{
+				Subject.value = 0;
+			}
 
 		}
 
-		public void executeRun ()
+		public void executeWrite (item Subject, String objectName, int val)
 		{
+			//System.out.println("in write");
+			/* Modify value of Object to value */
+			item my_object = get_object(objectName);
+			//if (my_object == null)
+			//	System.out.println("object was null");
+			if(write_dominates(Subject, my_object))
+			{
+			//	System.out.println("write_dominates");
+				/*Set the objecive val to passed by val*/
+				my_object.value = val;
+			}
+
+		}	
+
+		public void executeCreate (item Subject, String objectName)
+		{
+			//System.out.println("in create");
+			/* Create Object name with SecurityLevel of Subject */
+			if(get_object("OBJ") == null)
+				createNewObject(objectName, Subject.item_level);
+
+
+		}
+
+		public void executeDestory (item Subject, String objectName)
+		{
+			item my_object = get_object(objectName);
+			/* Destroy Object name */
+			if(my_object != null)
+			{	
+				if(write_dominates(Subject,my_object ))
+					destroyObject(objectName);//change it back to my_object
+			}
+		}
+
+		public void executeRun (item Subject, FileWriter f)
+		{
+			if (Subject.name.equals("Hal")){
+				/* Run Hal */
+
+				executeCreate(Subject, "OBJ");
+			}
+			else{
+				/* Run Lyle */
+				executeCreate(Subject, "OBJ");
+				executeWrite(Subject, "OBJ", 1);
+				executeRead(Subject, "OBJ");
+				executeDestory(Subject, "OBJ");
+
+				/*Writing bits to a file*/
+				byteBuffer[bitCounter] = Subject.value;
+
+				bitCounter++;
+				if(bitCounter == 8)
+				{
+					try{
+						//using local function to get bytes for 8 bits and writing it to a file 
+						char output = bitsToByte(byteBuffer);
+						f.write(output);
+						f.flush();
+
+					}
+					catch (Exception e){
+						System.out.println("write failed");
+						return;
+					}
+					bitCounter = 0;
+				}
+
+			}
 
 
 		}
@@ -92,13 +160,28 @@
 		 	public void addObj(String name, SecurityLevel level){
 		 		objects.add(new item(name, level));
 		 	}
+
+		 	public void destroyObj(item object)
+		 	{
+		 		objects.remove(object);
+		 	}
 		}
 
 
 		public void createNewObject(String name, SecurityLevel level)
 		{
+				//System.out.println("creating new Object " + name);
 				my_object_manager.addObj (name, level);
 		}
+
+		
+		public void destroyObject(String name)
+		{
+			item object = get_object(name);
+			if(object != null)
+				my_object_manager.destroyObj(object);
+		}
+		
 
 		public class item
 		{
@@ -132,6 +215,17 @@
     		}
 		}
 
-	}
+
+		public char bitsToByte(int[] buff){
+
+		int result = 0;
+		for (int i = 0; i < 8; i++){
+			int value = (buff[i] << (7 - i));
+			result = result | value;
+		}
+		return (char) result;
+
+	} 
+}
 
 
