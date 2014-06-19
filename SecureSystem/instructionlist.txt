@@ -1,0 +1,38 @@
+test correctness and capitalization 
+write Lyle HObj 10
+READ Lyle hobj
+write HAL lobj 15
+READ HAL LOBJ 
+read lyle lobj
+read lyle hobj
+read hal lobj
+read hal hobj
+write lyle lobj 25
+write lyle hobj 25
+write hal lobj 50
+write hal hobj 50
+read lyle lobj
+read lyle hobj
+read hal lobj
+read hal hobj
+test not valid subjects and objects
+read sam lobj
+read hal hobj2
+write sam lobj 10 
+write lyle lobj2 10
+test blank line
+
+test poorly formatted instructions
+read
+write
+read lyle
+write hal
+read lyle hal
+write hal lyle
+hal lobj 10
+lyle hobj 10
+hal lobj
+lyle lobj
+two last good format actions
+write lyle lobj 10
+read lyle lobj

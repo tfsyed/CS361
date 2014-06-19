@@ -1,0 +1,12 @@
+
+*.resources
+
+*.prefs
+
+*.xml
+
+*.xmi
+
+*.index
+
+.metadata/.plugins/org.eclipse.jdt.core/externalLibsTimeStamps
