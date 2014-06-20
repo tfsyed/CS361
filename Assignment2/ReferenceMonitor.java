@@ -1,14 +1,13 @@
-
    	import java.util.*;
 	import java.io.*;
 
-    //************************ OTHER CLASSES **********************//
     public class ReferenceMonitor{	
 		
 		ObjectManager my_object_manager;
 		ArrayList<item> subjects;
 		int[] byteBuffer ;
 		int bitCounter; 
+
 		//constructor for ReferenceMonitor
 		public ReferenceMonitor()
 		{
@@ -37,14 +36,11 @@
 
 		public void executeWrite (item Subject, String objectName, int val)
 		{
-			//System.out.println("in write");
 			/* Modify value of Object to value */
 			item my_object = get_object(objectName);
-			//if (my_object == null)
-			//	System.out.println("object was null");
+
 			if(write_dominates(Subject, my_object))
 			{
-			//	System.out.println("write_dominates");
 				/*Set the objecive val to passed by val*/
 				my_object.value = val;
 			}
@@ -136,12 +132,12 @@
 		/* Methods to compare levels */
 		public boolean read_dominates(item subject, item object)
 		{
-			return subject.item_level.ordinal() >= object.item_level.ordinal();
+			return subject != null && object != null && subject.item_level.ordinal() >= object.item_level.ordinal();
 		}
 
 		public boolean write_dominates(item subject, item object)
 		{
-			return subject.item_level.ordinal() <= object.item_level.ordinal();
+			return subject != null && object != null && subject.item_level.ordinal() <= object.item_level.ordinal();
 		}
 
  		public void createNewSubject(String name, SecurityLevel level)
