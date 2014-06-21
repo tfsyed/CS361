@@ -22,13 +22,14 @@ public class CovertChannel{
 		}
 		catch(Exception e){
 			System.out.println(e);
-			System.out.println("a");
 			return;
 		}
+
 		
 		/* Hook up the scanner to the file */
 		Scanner sc;
 		try{
+
 		 	sc = new Scanner(f);
 		}
 		catch(FileNotFoundException e)
@@ -46,6 +47,12 @@ public class CovertChannel{
 
         /* creatng a new java FileWriter*/
         try{
+
+        	if(verbose)
+        	{
+       			sys.my_monitor.isVerbose(filename, ".log");
+     		}
+
         	my_f = new FileWriter(filename + ".out"); 
         }
         catch(Exception e){
@@ -60,7 +67,7 @@ public class CovertChannel{
         /* Main Execution loop */
         try{
 			execute(sc, sys, my_f);
-		}
+		 }
 		catch(Exception e)
 		{
 			System.out.println("execute failed");
@@ -72,7 +79,9 @@ public class CovertChannel{
 
 	/* Main Execution Function */
 	public static void execute(Scanner sc, SecureSystem sys, FileWriter my_f){
-
+		long bit_counter = 0;
+		Stopwatch s = new Stopwatch();
+		s.start();
 		while(sc.hasNextLine())
 		{
 			String line = sc.nextLine();
@@ -96,13 +105,20 @@ public class CovertChannel{
 					sys.my_monitor.executeRun(sys.my_monitor.get_subject("Lyle"), my_f);
 				}
 
+				bit_counter += 8;
 				
 				my_byte = inputStream.read();
-				//System.out.println(Arrays.toString(buff));
-				//System.out.println(bitsToByte(buff));
-				/* Make a method to convert from byte to char */
+				
 			}
         }
+        s.stop();
+        long time = s.timeInNanoseconds();
+        System.out.println(bit_counter + " bits were transfered in " + time + " nanoseconds. ");
+        System.out.println("The bandwidth is " + bit_counter/ (time/1000.00) + " bits per second");
+        System.out.println("The bandwidth is " + bit_counter/ (time + 0.0) + " bits per nanosecond");
+
+        if (verbose)
+        	sys.my_monitor.cleanup();
 	}
 
 	
@@ -121,15 +137,12 @@ public class CovertChannel{
 				throw new IllegalArgumentException();
 			filename = args[1];
 			f = new File (filename);
-
-			System.out.println("I am in verbose mode.");
 		}
 		else{
 			filename = args[0];
 			f = new File (filename);
 		}
 
-		System.out.println("File name: " + f.toString());
 		return f;
 	}
 

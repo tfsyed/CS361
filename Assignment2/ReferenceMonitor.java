@@ -1,14 +1,15 @@
-
    	import java.util.*;
 	import java.io.*;
 
-    //************************ OTHER CLASSES **********************//
     public class ReferenceMonitor{	
 		
+		static boolean verbose;
 		ObjectManager my_object_manager;
 		ArrayList<item> subjects;
 		int[] byteBuffer ;
 		int bitCounter; 
+		filecreate verbosewriter;
+
 		//constructor for ReferenceMonitor
 		public ReferenceMonitor()
 		{
@@ -17,6 +18,7 @@
 			subjects = new ArrayList<item>();
 			byteBuffer = new int[8];
 			bitCounter = 0;
+			verbosewriter = new filecreate();
 		}
 
 		public void executeRead (item Subject, String objectName)
@@ -37,14 +39,11 @@
 
 		public void executeWrite (item Subject, String objectName, int val)
 		{
-			//System.out.println("in write");
 			/* Modify value of Object to value */
 			item my_object = get_object(objectName);
-			//if (my_object == null)
-			//	System.out.println("object was null");
+
 			if(write_dominates(Subject, my_object))
 			{
-			//	System.out.println("write_dominates");
 				/*Set the objecive val to passed by val*/
 				my_object.value = val;
 			}
@@ -73,14 +72,20 @@
 		}
 
 		public void executeRun (item Subject, FileWriter f)
-		{
+		{	
+
 			if (Subject.name.equals("Hal")){
 				/* Run Hal */
-
-				executeCreate(Subject, "OBJ");
+					if(verbose)
+						verbosewriter.write("RUN HAL\n");	
+					executeCreate(Subject, "OBJ");
 			}
 			else{
 				/* Run Lyle */
+				if(verbose)
+						verbosewriter.write("RUN LYLE\n");	
+
+
 				executeCreate(Subject, "OBJ");
 				executeWrite(Subject, "OBJ", 1);
 				executeRead(Subject, "OBJ");
@@ -136,12 +141,12 @@
 		/* Methods to compare levels */
 		public boolean read_dominates(item subject, item object)
 		{
-			return subject.item_level.ordinal() >= object.item_level.ordinal();
+			return subject != null && object != null && subject.item_level.ordinal() >= object.item_level.ordinal();
 		}
 
 		public boolean write_dominates(item subject, item object)
 		{
-			return subject.item_level.ordinal() <= object.item_level.ordinal();
+			return subject != null && object != null && subject.item_level.ordinal() <= object.item_level.ordinal();
 		}
 
  		public void createNewSubject(String name, SecurityLevel level)
@@ -224,8 +229,17 @@
 			result = result | value;
 		}
 		return (char) result;
-
 	} 
-}
 
+		public void isVerbose(String name, String extension)
+		{
+				verbosewriter.setFile(name + extension);
+				//filewrite = new filecreate(name + extension);
+				verbose = true; 
+		}
+
+		public void cleanup (){
+			verbosewriter.close();
+		}
+}
 
